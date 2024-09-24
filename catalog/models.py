@@ -22,28 +22,27 @@ class MyModelName(models.Model):
 
 class Genre(models.Model):
     """Model representing a book genre."""
-    name=models.CharField(
+    name = models.CharField(
         max_length=200,
         unique=True,
-        help_text="Enter a book genre (e.g. Science fiction,French Poetry etc.)"
+        help_text="Enter a book genre (e.g. Science Fiction, French Poetry etc.)"
     )
 
     def __str__(self):
         """String for representing the Model object."""
         return self.name
-    
+
     def get_absolute_url(self):
         """Returns the url to access a particular genre instance."""
-        return reverse("genre-detail",args=[str(self.id)])
-    
-    class Meta:
-        constraints=[
-            UniqueConstraint(
-                Lower("name"),
-                name="genre_name_case_insensitive_unique",
-                violation_error_message="Genre already exist (case insensitive match)",
+        return reverse('genre-detail', args=[str(self.id)])
 
-            )
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                Lower('name'),
+                name='genre_name_case_insensitive_unique',
+                violation_error_message = "Genre already exists (case insensitive match)"
+            ),
         ]
 
 class Book(models.Model):
@@ -60,6 +59,12 @@ class Book(models.Model):
         Genre,help_text="Select a genre for this book"
     )
 
+    def display_genre(self):
+        """Create a string for the Genre. This is required to display genre in Admin."""
+        return ", ".join(genre.name for genre in self.genre.all()[:3])
+    
+    display_genre.short_description='Genre'
+
     def __str__(self):
         """String for representing the Model object."""
         return self.title
@@ -74,8 +79,7 @@ class BookInstance(models.Model):
     """Model representing a specific copy of a book (i.e. that can be borrowed from the library)."""
     id=models.UUIDField(primary_key=True,default=uuid.uuid4,
                         help_text="Unique ID for this particular book across whole library")
-    book=models.ForeignKey('Book',
-                           on_delete=models.RESTRICT,null=True)
+    book=models.ForeignKey('Book',on_delete=models.RESTRICT,null=True)
     imprint=models.CharField(max_length=200)
     due_back=models.DateField(null=True,blank=True)
 
@@ -119,3 +123,27 @@ class Author(models.Model):
     def __str__(self):
         """String for representing the Model object."""
         return f'{self.last_name}, {self.first_name}'
+
+
+class Language(models.Model):
+    """Model representing a Language (e.g. English, French, Japanese, etc.)"""
+    name = models.CharField(max_length=200,
+                            unique=True,
+                            help_text="Enter the book's natural language (e.g. English, French, Japanese etc.)")
+
+    def get_absolute_url(self):
+        """Returns the url to access a particular language instance."""
+        return reverse('language-detail', args=[str(self.id)])
+
+    def __str__(self):
+        """String for representing the Model object (in Admin site etc.)"""
+        return self.name
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                Lower('name'),
+                name='language_name_case_insensitive_unique',
+                violation_error_message = "Language already exists (case insensitive match)"
+            ),
+        ]
